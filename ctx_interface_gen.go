@@ -249,7 +249,7 @@ type Ctx interface {
 	// You can use Redirect().To(), Redirect().Route() and Redirect().Back() for redirection.
 	Redirect() *Redirect
 	// ViewBind Add vars to default view var map binding to template engine.
-	// Variables are read by the Render method and may be overwritten.
+	// Variables are read by the RenderExtended method and may be overwritten.
 	ViewBind(vars Map) error
 	// getLocationFromRoute get URL location from route using parameters
 	getLocationFromRoute(route Route, params Map) (string, error)
@@ -257,7 +257,11 @@ type Ctx interface {
 	GetRouteURL(routeName string, params Map) (string, error)
 	// Render a template with data and sends a text/html response.
 	// We support the following engines: https://github.com/gofiber/template
-	Render(name string, bind Map, layouts ...string) error
+	Render(name string, bind any, layouts ...string) error
+	// RenderExtended is responsible for rendering templates with values bound by ViewBind.
+	// If the PassLocalsToViews configuration is enabled, values passed to Locals will be used in the rendering process.
+	// Passing a bind parameter to this function will override any values set by ViewBind or Locals.
+	RenderExtended(name string, bind Map, layouts ...string) error
 	renderExtensions(bind any)
 	// Route returns the matched Route struct.
 	Route() *Route

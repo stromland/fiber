@@ -1310,7 +1310,7 @@ func (c *DefaultCtx) Redirect() *Redirect {
 }
 
 // ViewBind Add vars to default view var map binding to template engine.
-// Variables are read by the Render method and may be overwritten.
+// Variables are read by the RenderExtended method and may be overwritten.
 func (c *DefaultCtx) ViewBind(vars Map) error {
 	// init viewBindMap - lazy map
 	for k, v := range vars {
@@ -1355,18 +1355,14 @@ func (c *DefaultCtx) GetRouteURL(routeName string, params Map) (string, error) {
 
 // Render a template with data and sends a text/html response.
 // We support the following engines: https://github.com/gofiber/template
-func (c *DefaultCtx) Render(name string, bind Map, layouts ...string) error {
+func (c *DefaultCtx) Render(name string, bind any, layouts ...string) error {
 	// Get new buffer from pool
 	buf := bytebufferpool.Get()
 	defer bytebufferpool.Put(buf)
 
-	// Initialize empty bind map if bind is nil
-	if bind == nil {
-		bind = make(Map)
+	if len(c.app.mountFields.appListKeys) == 0 {
+		c.app.generateAppListKeys()
 	}
-
-	// Pass-locals-to-views, bind, appListKeys
-	c.renderExtensions(bind)
 
 	var rendered bool
 	for i := len(c.app.mountFields.appListKeys) - 1; i >= 0; i-- {
@@ -1417,6 +1413,21 @@ func (c *DefaultCtx) Render(name string, bind Map, layouts ...string) error {
 	return nil
 }
 
+// RenderExtended is responsible for rendering templates with values bound by ViewBind.
+// If the PassLocalsToViews configuration is enabled, values passed to Locals will be used in the rendering process.
+// Passing a bind parameter to this function will override any values set by ViewBind or Locals.
+func (c *DefaultCtx) RenderExtended(name string, bind Map, layouts ...string) error {
+	// Initialize empty bind map if bind is nil
+	if bind == nil {
+		bind = make(Map)
+	}
+
+	// Pass-locals-to-views, bind
+	c.renderExtensions(bind)
+
+	return c.Render(name, bind, layouts...)
+}
+
 func (c *DefaultCtx) renderExtensions(bind any) {
 	if bindMap, ok := bind.(Map); ok {
 		// Bind view map
@@ -1442,10 +1453,6 @@ func (c *DefaultCtx) renderExtensions(bind any) {
 				}
 			})
 		}
-	}
-
-	if len(c.app.mountFields.appListKeys) == 0 {
-		c.app.generateAppListKeys()
 	}
 }
 

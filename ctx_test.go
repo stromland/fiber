@@ -3733,7 +3733,7 @@ func Test_Ctx_RenderWithLocals(t *testing.T) {
 		c := app.AcquireCtx(&fasthttp.RequestCtx{})
 
 		c.Locals("Title", "Hello, World!")
-		err := c.Render("./.github/testdata/index.tmpl", Map{})
+		err := c.RenderExtended("./.github/testdata/index.tmpl", Map{})
 
 		require.NoError(t, err)
 		require.Equal(t, "<h1>Hello, World!</h1>", string(c.Response().Body()))
@@ -3744,7 +3744,7 @@ func Test_Ctx_RenderWithLocals(t *testing.T) {
 		c := app.AcquireCtx(&fasthttp.RequestCtx{})
 
 		c.Locals("Title", "Hello, World!")
-		err := c.Render("./.github/testdata/index.tmpl", nil)
+		err := c.RenderExtended("./.github/testdata/index.tmpl", nil)
 
 		require.NoError(t, err)
 		require.Equal(t, "<h1>Hello, World!</h1>", string(c.Response().Body()))
@@ -3762,7 +3762,7 @@ func Test_Ctx_RenderWithViewBind(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = c.Render("./.github/testdata/index.tmpl", Map{})
+	err = c.RenderExtended("./.github/testdata/index.tmpl", Map{})
 	require.NoError(t, err)
 	buf := bytebufferpool.Get()
 	buf.WriteString("overwrite")
@@ -3809,7 +3809,7 @@ func Test_Ctx_RenderWithViewBindLocals(t *testing.T) {
 
 	c.Locals("Summary", "Test")
 
-	err = c.Render("./.github/testdata/template.tmpl", Map{})
+	err = c.RenderExtended("./.github/testdata/template.tmpl", Map{})
 	require.NoError(t, err)
 	require.Equal(t, "<h1>Hello, World! Test</h1>", string(c.Response().Body()))
 
@@ -3830,7 +3830,7 @@ func Test_Ctx_RenderWithLocalsAndBinding(t *testing.T) {
 
 	c.Locals("Title", "This is a test.")
 
-	err = c.Render("index.tmpl", Map{
+	err = c.RenderExtended("index.tmpl", Map{
 		"Title": "Hello, World!",
 	})
 
@@ -3858,7 +3858,7 @@ func Benchmark_Ctx_RenderWithLocalsAndViewBind(b *testing.B) {
 	b.ResetTimer()
 
 	for n := 0; n < b.N; n++ {
-		err = c.Render("template.tmpl", Map{})
+		err = c.RenderExtended("template.tmpl", Map{})
 	}
 
 	require.NoError(b, err)
